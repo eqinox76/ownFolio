@@ -1,10 +1,10 @@
 package importers
 
 import (
-"testing"
-"time"
-"os"
-"bufio"
+	"bufio"
+	"os"
+	"testing"
+	"time"
 )
 
 func TestParseHistoric(t *testing.T) {
@@ -16,7 +16,6 @@ func TestParseHistoric(t *testing.T) {
 
 	reader := bufio.NewReader(f)
 
-
 	instr, err := ParseQuantlJson(reader)
 
 	if err != nil {
@@ -27,7 +26,7 @@ func TestParseHistoric(t *testing.T) {
 		t.Errorf("Name is wrong: %s", instr.Name)
 	}
 
-	if len(instr.Data) != 6352{
+	if len(instr.Data) != 6352 {
 		t.Errorf("Wrong number of Datapoints parsed: %d", len(instr.Data))
 	}
 	dp := &instr.Data[len(instr.Data)/2]
@@ -35,11 +34,11 @@ func TestParseHistoric(t *testing.T) {
 		t.Errorf("High parsed wrong '%f'", dp.High)
 	}
 
-	if instr.Data[0].Time != time.Date(1990, time.November, 26, 0, 0, 0, 0, time.UTC){
+	if instr.Data[0].Time != time.Date(1990, time.November, 26, 0, 0, 0, 0, time.UTC) {
 		t.Errorf("First date seems wrong %s", instr.Data[0].Time)
 	}
-	if instr.Data[len(instr.Data) - 1].Time != time.Date(2015, time.December, 23, 0, 0, 0, 0, time.UTC){
-		t.Errorf("Last date seems wrong %s", instr.Data[len(instr.Data) - 1].Time)
+	if instr.Data[len(instr.Data)-1].Time != time.Date(2015, time.December, 23, 0, 0, 0, 0, time.UTC) {
+		t.Errorf("Last date seems wrong %s", instr.Data[len(instr.Data)-1].Time)
 	}
 }
 
