@@ -6,6 +6,7 @@ import (
 	"time"
 	"sort"
 	"io"
+	"net/http"
 )
 
 type Root struct{
@@ -16,8 +17,8 @@ type Root struct{
 	}
 }
 
-func ParseQuantlJson(reader io.Reader) (Instrument, error) {
-	var instr Instrument
+func ParseQuantlJson(reader io.Reader) (*Instrument, error) {
+	instr := new(Instrument)
 
 	var r Root
 
@@ -100,4 +101,20 @@ func ParseQuantlJson(reader io.Reader) (Instrument, error) {
 	}
 	sort.Sort(instr.Data)
 	return instr, nil
+}
+
+func GenerateURL(database string, dataset string) string{
+	return fmt.Sprintf("https://www.quandl.com/api/v3/datasets/%s/%s.json", database, dataset)
+}
+
+func GetHistory(url string) (*Instrument, error){
+	// example https://www.quandl.com/api/v3/datasets/YAHOO/INDEX_GDAXI.json
+
+	r, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+
+	return ParseQuantlJson(r.Body)
 }
