@@ -2,17 +2,22 @@ package importers
 
 import (
 "testing"
-"io/ioutil"
 "time"
+"os"
+"bufio"
 )
 
 func TestParseHistoric(t *testing.T) {
-	buffer, err := ioutil.ReadFile("dax.data.json")
+	f, err := os.Open("dax.data.json")
 	if err != nil {
 		t.Error("Could not open data file. %s", err)
 	}
+	defer f.Close()
 
-	instr, err := ParseQuantlJson(buffer)
+	reader := bufio.NewReader(f)
+
+
+	instr, err := ParseQuantlJson(reader)
 
 	if err != nil {
 		t.Error(err)
@@ -31,7 +36,7 @@ func TestParseHistoric(t *testing.T) {
 	}
 
 	if instr.Data[0].Time != time.Date(1990, time.November, 26, 0, 0, 0, 0, time.UTC){
-		t.Errorf("First date seems wrong")
+		t.Errorf("First date seems wrong %s", instr.Data[0].Time)
 	}
 	if instr.Data[len(instr.Data) - 1].Time != time.Date(2015, time.December, 23, 0, 0, 0, 0, time.UTC){
 		t.Errorf("Last date seems wrong %s", instr.Data[len(instr.Data) - 1].Time)

@@ -1,6 +1,9 @@
 package importers
 
-import "time"
+import (
+	"time"
+	"fmt"
+)
 
 type DataPoint struct {
 	Time time.Time
@@ -8,6 +11,10 @@ type DataPoint struct {
 	Low       float32
 	Volume    uint64
 	Close     float32
+}
+
+func (d DataPoint) String() string{
+	return fmt.Sprintf("%s high:%f low:%f close:%f vol:%d", d.Time.Format("2006-01-02"), d.High, d.Low, d.Close, d.Volume)
 }
 
 type DataPoints []DataPoint
