@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"sort"
 	"time"
+
+	"appengine"
+	"appengine/urlfetch"
 
 	"github.com/eqinox76/ownFolio/data"
 )
@@ -109,11 +111,12 @@ func GenerateURL(database string, dataset string) string {
 	return fmt.Sprintf("https://www.quandl.com/api/v3/datasets/%s/%s.json", database, dataset)
 }
 
-func GetHistory(url string) (data.Instrument, error) {
+func GetHistory(ctx appengine.Context, url string) (data.Instrument, error) {
 	// example https://www.quandl.com/api/v3/datasets/YAHOO/INDEX_GDAXI.json
 
 	var instr data.Instrument
-	r, err := http.Get(url)
+	client := urlfetch.Client(ctx)
+	r, err := client.Get(url)
 	if err != nil {
 		return instr, err
 	}

@@ -12,19 +12,19 @@ import (
 	"github.com/eqinox76/ownFolio/data"
 )
 
-func getDataF(id string) (data.Instrument, error){
+func getDataF(ctx appengine.Context, id string) (data.Instrument, error){
 	url := importers.GenerateURL("YAHOO", id)
-	return importers.GetHistory(url)
+	return importers.GetHistory(ctx, url)
 }
 
 var getData = getDataF
 
 
-func GetInstrument(id string, ctx appengine.Context) data.Instrument {
+func GetInstrument(ctx appengine.Context, id string) data.Instrument {
 	// get item from memcache
 	if item, err := memcache.Get(ctx, id); err == memcache.ErrCacheMiss {
 		// item not in cache
-		instr, err := getData(id)
+		instr, err := getData(ctx, id)
 		if err != nil{
 			log.Panicf("could not get data for %s because %s", id, err)
 		}
@@ -45,7 +45,7 @@ func GetInstrument(id string, ctx appengine.Context) data.Instrument {
 		return instr
 	} else if err != nil {
 		log.Panicf("error getting id:%s err:%s", id, err)
-		instr, err := getData(id)
+		instr, err := getData(ctx, id)
 		if err != nil{
 			log.Panicf("could not get data for %s because %s", id, err)
 		}
@@ -57,7 +57,7 @@ func GetInstrument(id string, ctx appengine.Context) data.Instrument {
 		err := dec.Decode(&instr)
 		if err != nil{
 			log.Panicf("Could not decode data for %s err: %s", id, err)
-			instr, err = getData(id)
+			instr, err = getData(ctx, id)
 			if err != nil{
 				log.Panicf("could not get data for %s because %s", id, err)
 			}

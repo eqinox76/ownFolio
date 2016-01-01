@@ -5,15 +5,16 @@ import (
 	"net/http"
 	"html/template"
 	"time"
+	"encoding/json"
 
 	"appengine"
 	"appengine/datastore"
 	"appengine/user"
 
-	_ "github.com/eqinox76/ownFolio/api"
+	"github.com/eqinox76/ownFolio/api"
 )
 
-func Run() {
+func init() {
 	http.HandleFunc("/stocks", getStock)
 	http.HandleFunc("/observe", showObserved)
 }
@@ -61,11 +62,16 @@ func getStock(w http.ResponseWriter, r *http.Request) {
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
-	_ = c
 
-	data := make(map[string]string)
+	instrument := r.URL.Query().Get("instrument")
 
-	err := chartTempl.Execute(w, data)
+	instr := api.GetInstrument(c, instrument)
+
+	jsData, err := json.Marshal(instr)
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	_, err = w.Write(jsData)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
