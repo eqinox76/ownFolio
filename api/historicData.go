@@ -1,13 +1,15 @@
-package timeseries
+package api
 
 import (
 	"log"
 	"encoding/gob"
 	"bytes"
-	"../data"
-	"../importers"
+
 	"appengine/memcache"
 	"appengine"
+
+	"github.com/eqinox76/ownFolio/importers"
+	"github.com/eqinox76/ownFolio/data"
 )
 
 func getDataF(id string) (data.Instrument, error){

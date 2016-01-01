@@ -1,16 +1,19 @@
-package portfolio
+package main
 
 import (
 	"fmt"
 	"net/http"
+	"html/template"
 	"time"
 
 	"appengine"
 	"appengine/datastore"
 	"appengine/user"
+
+	_ "github.com/eqinox76/ownFolio/api"
 )
 
-func init() {
+func Run() {
 	http.HandleFunc("/stocks", getStock)
 	http.HandleFunc("/observe", showObserved)
 }
@@ -51,33 +54,21 @@ type OwnedStock struct {
 	BuyDate time.Time
 }
 
+var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
+
 func getStock(w http.ResponseWriter, r *http.Request) {
 	c, _, login := checkLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
+	_ = c
 
-	stock := &OwnedStock{
-		Name: "test",
-	}
+	data := make(map[string]string)
 
-	fmt.Fprintf(w, "Stored and retrieved the Employee named %q", stock)
-
-	key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "employee", nil), stock)
-	fmt.Fprintf(w, "%q\n", key)
-	if err != nil {
+	err := chartTempl.Execute(w, data)
+	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-
-	stock2 := new(OwnedStock)
-	err = datastore.Get(c, key, stock2)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintf(w, "Stored and retrieved the Employee named %q", stock2)
 }
 
 func checkLogin(w http.ResponseWriter, r *http.Request) (appengine.Context, *user.User, bool) {

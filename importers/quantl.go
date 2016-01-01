@@ -1,13 +1,14 @@
 package importers
 
 import (
-	"../data"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"sort"
 	"time"
+
+	"github.com/eqinox76/ownFolio/data"
 )
 
 type Root struct {

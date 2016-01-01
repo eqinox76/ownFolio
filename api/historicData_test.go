@@ -1,10 +1,11 @@
-package timeseries
+package api
 
 import (
-	"../data"
 	"log"
 	"testing"
 	"appengine/aetest"
+
+	"eqinox76/ownFolio/data"
 )
 
 func TestGetInstrument(t *testing.T){
