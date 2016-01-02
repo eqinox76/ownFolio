@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"html/template"
 	"time"
-	"encoding/json"
+	_ "encoding/json"
 
 	"appengine"
 	"appengine/datastore"
@@ -67,14 +67,23 @@ func getStock(w http.ResponseWriter, r *http.Request) {
 
 	instr := api.GetInstrument(c, instrument)
 
-	jsData, err := json.Marshal(instr)
+	/*jsData, err := json.Marshal(instr)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	_, err = w.Write(jsData)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}*/
+	data := make(map[string]interface{})
+	data["timeseriesdata"] = instr
+
+	err := chartTempl.Execute(w, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+
 }
 
 func checkLogin(w http.ResponseWriter, r *http.Request) (appengine.Context, *user.User, bool) {
