@@ -9,8 +9,8 @@ type DataPoint struct {
 	Time   time.Time
 	High   float32
 	Low    float32
-	Volume uint64
 	Close  float32
+	Volume uint64
 }
 
 func (d DataPoint) String() string {
@@ -39,4 +39,22 @@ type Instrument struct {
 
 func (instr *Instrument) Add(p *DataPoint) {
 	instr.Data = append(instr.Data, *p)
+}
+
+type C3Data struct{
+	Date []string
+	High []float32
+	Low []float32
+	Close []float32
+}
+
+func (instr *Instrument) C3Data() C3Data{
+	var result C3Data
+	for _, value := range instr.Data {
+		result.Date = append(result.Date, value.Time.Format("2006-01-02"))
+		result.High = append(result.High, value.High)
+		result.Low = append(result.Low, value.Low)
+		result.Close = append(result.Close, value.Close)
+	}
+	return result
 }

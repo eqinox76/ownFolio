@@ -12,15 +12,16 @@ import (
 	"github.com/eqinox76/ownFolio/data"
 )
 
-func getDataF(ctx appengine.Context, id string) (data.Instrument, error){
+func getDataF(ctx appengine.Context, id string) (data.C3Data, error){
 	url := importers.GenerateURL("YAHOO", id)
-	return importers.GetHistory(ctx, url)
+	instr, err := importers.GetHistory(ctx, url)
+	return instr.C3Data(), err
 }
 
 var getData = getDataF
 
 
-func GetInstrument(ctx appengine.Context, id string) data.Instrument {
+func GetInstrument(ctx appengine.Context, id string) data.C3Data {
 	// get item from memcache
 	if item, err := memcache.Get(ctx, id); err == memcache.ErrCacheMiss {
 		// item not in cache
@@ -52,7 +53,7 @@ func GetInstrument(ctx appengine.Context, id string) data.Instrument {
 		return instr
 	} else {
 		buffer := bytes.NewBuffer(item.Value)
-		var instr data.Instrument
+		var instr data.C3Data
 		dec := gob.NewDecoder(buffer)
 		err := dec.Decode(&instr)
 		if err != nil{

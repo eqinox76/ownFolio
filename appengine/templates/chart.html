@@ -1,11 +1,35 @@
 {{ define "jsInclude"}}
-<script type="text/javascript" src="static/d3/d3.js"> </script>
+<!-- Load c3.css -->
+<link href="static/c3/c3.css" rel="stylesheet" type="text/css">
+
+<!-- Load d3.js and c3.js -->
+<script type="text/javascript" src="static/d3/d3.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="static/c3/c3.min.js"></script>
 {{ end }}
 
 {{ define "content" }}
 <h1>Test</h1>
-<div name="timeseriesdata">{{ js .timeseriesdata }} </div>
+<div id="chart"></div>
 <script type="text/javascript">
+	var timeseriesdata = JSON.parse('{{ .timeseriesdata }}');
+	var chart = c3.generate({
+		bindto: '#chart',
+		data:{
+			x : 'x',
+			columns:[
+				['x', '2015-01-02', '2015-04-03'],
+				['data1', 34.5, 44.003]
+			]
+		},
+		axis: {
+			x:{
+				type: 'timeseries',
+				tick: {
+					format:'%y-%m-%d'
+				}
+			}
+		}
+	});
 
 </script>
 {{ end }}

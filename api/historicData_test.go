@@ -3,16 +3,17 @@ package api
 import (
 	"log"
 	"testing"
+	"appengine"
 	"appengine/aetest"
 
-	"eqinox76/ownFolio/data"
+	"github.com/eqinox76/ownFolio/data"
 )
 
 func TestGetInstrument(t *testing.T){
 	called := 0
-	getData = func (id string) (data.Instrument, error){
+	getData = func (_ appengine.Context, id string) (data.C3Data, error){
 		log.Printf("overwritten method called with id %s", id)
-		var i data.Instrument
+		var i data.C3Data
 		called++
 		return i, nil
 	}
@@ -24,15 +25,15 @@ func TestGetInstrument(t *testing.T){
 
 	defer ctx.Close()
 
-	GetInstrument("DAX", ctx)
+	GetInstrument(ctx, "DAX")
 
 	if called != 1{
 		t.Fatal("Calling once produced %i called", called)
 	}
 
-	GetInstrument("DAX", ctx)
-	GetInstrument("DAX", ctx)
-	GetInstrument("DAX", ctx)
+	GetInstrument(ctx, "DAX")
+	GetInstrument(ctx, "DAX")
+	GetInstrument(ctx, "DAX")
 
 	if called != 1{
 		t.Fatal("Calling once produced %i called", called)
