@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"html/template"
-	"time"
 	"encoding/json"
+	"fmt"
+	"html/template"
+	"net/http"
 	"strconv"
+	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -72,7 +72,7 @@ func getStock(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getTimeSeries(w http.ResponseWriter, r *http.Request){
+func getTimeSeries(w http.ResponseWriter, r *http.Request) {
 	c, _, login := checkLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
@@ -90,11 +90,8 @@ func getTimeSeries(w http.ResponseWriter, r *http.Request){
 		timeseries = api.GetInstrumentLimited(c, instrument, limit)
 	}
 
-
-	
-
 	jsData, err := json.Marshal(timeseries)
-	if err != nil{
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	fmt.Fprintf(w, "%s", jsData)
