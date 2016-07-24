@@ -4,6 +4,7 @@ import (
 	"log"
 	"encoding/gob"
 	"bytes"
+	"math"
 
 	"appengine/memcache"
 	"appengine"
@@ -12,22 +13,31 @@ import (
 	"github.com/eqinox76/ownFolio/data"
 )
 
-func getDataF(ctx appengine.Context, id string) (data.C3Data, error){
+func getDataF(ctx appengine.Context, id string) (data.DataPoints, error){
 	url := importers.GenerateURL("YAHOO", id)
 	instr, err := importers.GetHistory(ctx, url)
-	return instr.C3Data(), err
+	return instr.Data, err
 }
 
 var getData = getDataF
 
 
-func GetInstrument(ctx appengine.Context, id string) data.C3Data {
+func GetInstrumentLimited(ctx appengine.Context, id string, limit int) data.DataPoints {
+
+	data := GetInstrument(ctx, id)
+	// why no min for int ?
+	pos := math.Max(0, float64(len(data) - limit))
+
+	return data[int(pos):]
+}
+
+func GetInstrument(ctx appengine.Context, id string) data.DataPoints {
 	// get item from memcache
 	if item, err := memcache.Get(ctx, id); err == memcache.ErrCacheMiss {
 		// item not in cache
 		instr, err := getData(ctx, id)
 		if err != nil{
-			log.Panicf("could not get data for %s because %s", id, err)
+			log.Panicf("could not get data for '%s' because: %s", id, err)
 		}
 		var buffer bytes.Buffer
 		enc := gob.NewEncoder(&buffer)
@@ -41,8 +51,10 @@ func GetInstrument(ctx appengine.Context, id string) data.C3Data {
 		}
 		err = memcache.Add(ctx, cacheEntry)
 		if err != nil{
-			log.Printf("something was wrong when adding a new item %s err:%s", ctx, err)
+			ctx.Infof("something was wrong when adding a new item %s err:%s", ctx, err)
 		}
+
+		ctx.Infof("Got '%s' from source", id)
 		return instr
 	} else if err != nil {
 		log.Panicf("error getting id:%s err:%s", id, err)
@@ -53,7 +65,7 @@ func GetInstrument(ctx appengine.Context, id string) data.C3Data {
 		return instr
 	} else {
 		buffer := bytes.NewBuffer(item.Value)
-		var instr data.C3Data
+		var instr data.DataPoints
 		dec := gob.NewDecoder(buffer)
 		err := dec.Decode(&instr)
 		if err != nil{
@@ -63,6 +75,8 @@ func GetInstrument(ctx appengine.Context, id string) data.C3Data {
 				log.Panicf("could not get data for %s because %s", id, err)
 			}
 		}
+
+		ctx.Infof("Got '%s' from cache", id)
 		return instr
 	}
 }

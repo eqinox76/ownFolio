@@ -11,15 +11,20 @@
 <h1>Test</h1>
 <div id="chart"></div>
 <script type="text/javascript">
-	var timeseriesdata = JSON.parse('{{ .timeseriesdata }}');
 	var chart = c3.generate({
 		bindto: '#chart',
 		data:{
-			x : 'x',
-			columns:[
-				['x', '2015-01-02', '2015-04-03'],
-				['data1', 34.5, 44.003]
-			]
+			url: '/timeseries?instrument=INDEX_GDAXI&limit=365',
+            mimeType: 'json',
+
+        	xFormat: '%Y-%m-%dT%H:%M:%SZ',
+	        keys: {
+	            x: 'Time',
+	            value: ['High', 'Low', 'Close'],
+	        },
+		},
+		zoom: {
+			enabled: true
 		},
 		axis: {
 			x:{

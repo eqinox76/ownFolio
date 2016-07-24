@@ -6,16 +6,19 @@ import (
 	"html/template"
 	"time"
 	"encoding/json"
+	"strconv"
 
 	"appengine"
 	"appengine/datastore"
 	"appengine/user"
 
 	"github.com/eqinox76/ownFolio/api"
+	"github.com/eqinox76/ownFolio/data"
 )
 
 func init() {
 	http.HandleFunc("/stocks", getStock)
+	http.HandleFunc("/timeseries", getTimeSeries)
 	http.HandleFunc("/observe", showObserved)
 }
 
@@ -58,6 +61,18 @@ type OwnedStock struct {
 var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
 
 func getStock(w http.ResponseWriter, r *http.Request) {
+	_, _, login := checkLogin(w, r)
+	if !login {
+		http.Error(w, "Not logged in correctly", 401)
+	}
+
+	err := chartTempl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func getTimeSeries(w http.ResponseWriter, r *http.Request){
 	c, _, login := checkLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
@@ -65,21 +80,24 @@ func getStock(w http.ResponseWriter, r *http.Request) {
 
 	instrument := r.URL.Query().Get("instrument")
 
-	timeseries := api.GetInstrument(c, instrument)
+	//TODO find a better way to do this optional limit parameter
+	var timeseries data.DataPoints
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		timeseries = api.GetInstrument(c, instrument)
+	} else {
+		timeseries = api.GetInstrumentLimited(c, instrument, limit)
+	}
+
+
+	
 
 	jsData, err := json.Marshal(timeseries)
 	if err != nil{
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	data := make(map[string]interface{})
-	data["timeseriesdata"] = jsData
-
-	err = chartTempl.Execute(w, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-
+	fmt.Fprintf(w, "%s", jsData)
 }
 
 func checkLogin(w http.ResponseWriter, r *http.Request) (appengine.Context, *user.User, bool) {
