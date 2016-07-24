@@ -6,8 +6,8 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -22,37 +22,53 @@ func init() {
 	http.HandleFunc("/timeseries", getTimeSeries)
 	http.HandleFunc("/holding", showHoldings)
 	http.HandleFunc("/holding/add", addHolding)
+	http.HandleFunc("/holding/get", getHolding)
 }
 
-func showHoldings(w http.ResponseWriter, r *http.Request) {
+
+var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
+
+var holdingTempl = template.Must(template.ParseFiles("templates/base.html", "templates/holding.html"))
+
+
+func getHolding(w http.ResponseWriter, r *http.Request) {
 	c, _, login := checkLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
 
-	add := r.URL.Query().Get("add")
-	if len(add) != 0 {
-		// we add a new symbol
-		a := data.Holding{ISIN: add}
-		_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "holding", nil), &a)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
-		q := datastore.NewQuery("holding")
-		var results []data.Holding
-		_, err := q.GetAll(c, &results)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		fmt.Fprintf(w, "%v elements:\n", len(results))
-		fmt.Fprintf(w, "%v", results)
+	q := datastore.NewQuery("holding")
+	var results []data.Holding
+	_, err := q.GetAll(c, &results)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	jsData, err := json.Marshal(results)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	fmt.Fprintf(w, "%s", jsData)
+
+}
+
+
+
+func showHoldings(w http.ResponseWriter, r *http.Request) {
+	_, _, login := checkLogin(w, r)
+	if !login {
+		http.Error(w, "Not logged in correctly", 401)
+	}
+
+	err := holdingTempl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 // http://localhost:8080/holding/add?isin=%22huhuh%22&price=42.4&volume=51223&date=%222015-01-04%22
-func addHolding(w http.ResponseWriter, r *http.Request)	{
+func addHolding(w http.ResponseWriter, r *http.Request) {
 	c, _, login := checkLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
@@ -63,27 +79,27 @@ func addHolding(w http.ResponseWriter, r *http.Request)	{
 	dateStr := strings.Trim(r.URL.Query().Get("date"), "\"")
 	volumeStr := strings.Trim(r.URL.Query().Get("volume"), "\"")
 
-	if (isin == "" || priceStr =="" || dateStr =="" || volumeStr == "") {
+	if isin == "" || priceStr == "" || dateStr == "" || volumeStr == "" {
 		fmt.Fprintf(w, "%v\n", r.URL.Query())
 		http.Error(w, "Empty/missing parameters. Need isin, price, date, volume", http.StatusBadRequest)
 		return
 	}
 
 	price, err := strconv.ParseFloat(priceStr, 64)
-	if err != nil{
-		http.Error(w, "Could not parse " + priceStr, http.StatusBadRequest)
+	if err != nil {
+		http.Error(w, "Could not parse "+priceStr, http.StatusBadRequest)
 		return
 	}
 
 	volume, err := strconv.ParseFloat(volumeStr, 64)
-	if err != nil{
-		http.Error(w, "Could not parse " + volumeStr, http.StatusBadRequest)
+	if err != nil {
+		http.Error(w, "Could not parse "+volumeStr, http.StatusBadRequest)
 		return
 	}
 
 	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		http.Error(w, "Could not parse '" + dateStr + "'\n" + err.Error(), http.StatusBadRequest)
+		http.Error(w, "Could not parse '"+dateStr+"'\n"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -93,15 +109,8 @@ func addHolding(w http.ResponseWriter, r *http.Request)	{
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	
-}
 
-type OwnedStock struct {
-	Name    string
-	BuyDate time.Time
 }
-
-var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
 
 func getStock(w http.ResponseWriter, r *http.Request) {
 	_, _, login := checkLogin(w, r)

@@ -8,46 +8,10 @@
 {{ end }}
 
 {{ define "content" }}
-<div id="chart"></div>
+<h1>Holdings</h1>
+<div id="table"></div>
 
 
-
-
-<script type="text/javascript">
-	var chart = c3.generate({
-		bindto: '#chart',
-		data:{
-			json:[],
-			xFormat: '%Y-%m-%dT%H:%M:%SZ',
-		},
-		zoom: {
-			enabled: true
-		},
-		axis: {
-			x:{
-				type: 'timeseries',
-				//tick: {
-				//	format: '%Y-%m-%d'
-				//}
-			}
-		}
-	});
-
-	function loadInstrument(id){
-		chart.load({
-			url: '/timeseries?instrument=' + id +'&limit=10',
-			mimeType: 'json',
-
-			keys: {
-				x: 'Time',
-				value: ['Close'],
-			}
-		})
-	};
-
-	loadInstrument('INDEX_GDAXI');
-
-	var table = d3.select('body').append('table');
 
 
 </script>
