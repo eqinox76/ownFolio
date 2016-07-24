@@ -37,12 +37,12 @@ func (slice DataPoints) Swap(i, j int) {
 }
 
 // describes a instrument with all known values on day basis
-type Instrument struct {
+type TimeSeries struct {
 	Name string
 	ISIN string
 	Data DataPoints
 }
 
-func (instr *Instrument) Add(p *DataPoint) {
+func (instr *TimeSeries) Add(p *DataPoint) {
 	instr.Data = append(instr.Data, *p)
 }

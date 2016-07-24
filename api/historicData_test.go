@@ -11,9 +11,9 @@ import (
 
 func TestGetInstrument(t *testing.T){
 	called := 0
-	getData = func (_ appengine.Context, id string) (data.C3Data, error){
+	getData = func (_ appengine.Context, id string) (data.DataPoints, error){
 		log.Printf("overwritten method called with id %s", id)
-		var i data.C3Data
+		var i data.DataPoints
 		called++
 		return i, nil
 	}

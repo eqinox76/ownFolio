@@ -21,8 +21,8 @@ type Root struct {
 	}
 }
 
-func ParseQuantlJson(reader io.Reader) (data.Instrument, error) {
-	var instr data.Instrument
+func ParseQuantlJson(reader io.Reader) (data.TimeSeries, error) {
+	var instr data.TimeSeries
 
 	var r Root
 
@@ -111,10 +111,10 @@ func GenerateURL(database string, dataset string) string {
 	return fmt.Sprintf("https://www.quandl.com/api/v3/datasets/%s/%s.json", database, dataset)
 }
 
-func GetHistory(ctx appengine.Context, url string) (data.Instrument, error) {
+func GetHistory(ctx appengine.Context, url string) (data.TimeSeries, error) {
 	// example https://www.quandl.com/api/v3/datasets/YAHOO/INDEX_GDAXI.json
 
-	var instr data.Instrument
+	var instr data.TimeSeries
 	client := urlfetch.Client(ctx)
 	r, err := client.Get(url)
 	if err != nil {
