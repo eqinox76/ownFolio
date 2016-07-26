@@ -24,7 +24,7 @@ var getData = getDataF
 func GetInstrumentLimited(ctx appengine.Context, id string, limit int) data.DataPoints {
 
 	data := GetInstrument(ctx, id)
-	// why no min for int ?
+	//TODO why no min for int ?
 	pos := math.Max(0, float64(len(data)-limit))
 
 	return data[int(pos):]

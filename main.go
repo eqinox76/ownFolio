@@ -9,9 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"appengine"
 	"appengine/datastore"
-	"appengine/user"
 
 	"github.com/eqinox76/ownFolio/api"
 	"github.com/eqinox76/ownFolio/data"
@@ -30,7 +28,7 @@ var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templ
 var holdingTempl = template.Must(template.ParseFiles("templates/base.html", "templates/holding.html"))
 
 func getHolding(w http.ResponseWriter, r *http.Request) {
-	c, _, login := checkLogin(w, r)
+	c, _, login := api.CheckLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
@@ -52,7 +50,7 @@ func getHolding(w http.ResponseWriter, r *http.Request) {
 }
 
 func showHoldings(w http.ResponseWriter, r *http.Request) {
-	_, _, login := checkLogin(w, r)
+	_, _, login := api.CheckLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
@@ -65,7 +63,7 @@ func showHoldings(w http.ResponseWriter, r *http.Request) {
 
 // http://localhost:8080/holding/add?isin=%22huhuh%22&price=42.4&volume=51223&date=%222015-01-04%22
 func addHolding(w http.ResponseWriter, r *http.Request) {
-	c, _, login := checkLogin(w, r)
+	c, _, login := api.CheckLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
@@ -109,7 +107,7 @@ func addHolding(w http.ResponseWriter, r *http.Request) {
 }
 
 func getStock(w http.ResponseWriter, r *http.Request) {
-	_, _, login := checkLogin(w, r)
+	_, _, login := api.CheckLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
@@ -121,7 +119,7 @@ func getStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTimeSeries(w http.ResponseWriter, r *http.Request) {
-	c, _, login := checkLogin(w, r)
+	c, _, login := api.CheckLogin(w, r)
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
@@ -143,24 +141,4 @@ func getTimeSeries(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	fmt.Fprintf(w, "%s", jsData)
-}
-
-func checkLogin(w http.ResponseWriter, r *http.Request) (appengine.Context, *user.User, bool) {
-	c := appengine.NewContext(r)
-	u := user.Current(c)
-
-	// if we are not logged in lets try it
-	if u == nil {
-		url, err := user.LoginURL(c, r.URL.String())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return c, u, false
-		}
-		w.Header().Set("Location", url)
-		w.WriteHeader(http.StatusFound)
-		return c, u, false
-	}
-
-	return c, u, true
-
 }
