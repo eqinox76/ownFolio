@@ -1,18 +1,70 @@
-{{ define "jsInclude"}}
-<!-- Load c3.css -->
-<link href="static/c3/c3.css" rel="stylesheet" type="text/css">
+{{ define "cssInclude"}}
+<style>
+table,td,th {
+	border:1px solid black;
+	border-collapse:collapse;
+	padding:2px 10px;
+}
 
-<!-- Load d3.js and c3.js -->
-<script type="text/javascript" src="static/d3/d3.min.js" charset="utf-8"></script>
-<script type="text/javascript" src="static/c3/c3.min.js"></script>
+th {
+	background-color:lightgrey;
+}
+</style>
+{{ end }}
+
+{{ define "jsInclude"}}
 {{ end }}
 
 {{ define "content" }}
 <h1>Holdings</h1>
-<div id="table"></div>
+<div id="table"/>
 
+<script type="text/javascript">
+	var myList = [{"name" : "abc", "age" : 50},
+				  {"age" : "25", "hobby" : "swimming"},
+				  {"name" : "xyz", "hobby" : "programming"}];
 
+	// Builds the HTML Table out of myList.
+	function buildHtmlTable(selector) {
+		var columns = addAllColumnHeaders(myList, selector);
 
+		for (var i = 0 ; i < myList.length ; i++) {
+			var row$ = $('<tr/>');
+			for (var colIndex = 0 ; colIndex < columns.length ; colIndex++) {
+				var cellValue = myList[i][columns[colIndex]];
+
+				if (cellValue == null) { cellValue = ""; }
+
+				row$.append($('<td/>').html(cellValue));
+			}
+			$(selector).append(row$);
+		}
+	}
+
+	// Adds a header row to the table and returns the set of columns.
+	// Need to do union of keys from all records as some records may not contain
+	// all records
+	function addAllColumnHeaders(myList, selector)
+	{
+		var columnSet = [];
+		var headerTr$ = $('<tr/>');
+
+		for (var i = 0 ; i < myList.length ; i++) {
+			var rowHash = myList[i];
+			for (var key in rowHash) {
+				if ($.inArray(key, columnSet) == -1){
+					columnSet.push(key);
+					headerTr$.append($('<th/>').html(key));
+				}
+			}
+		}
+		$(selector).append(headerTr$);
+
+		return columnSet;
+	}
+
+	buildHtmlTable('#table')
 
 </script>
+
 {{ end }}
