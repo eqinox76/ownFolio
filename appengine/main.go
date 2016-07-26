@@ -25,11 +25,9 @@ func init() {
 	http.HandleFunc("/holding/get", getHolding)
 }
 
-
 var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
 
 var holdingTempl = template.Must(template.ParseFiles("templates/base.html", "templates/holding.html"))
-
 
 func getHolding(w http.ResponseWriter, r *http.Request) {
 	c, _, login := checkLogin(w, r)
@@ -52,8 +50,6 @@ func getHolding(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", jsData)
 
 }
-
-
 
 func showHoldings(w http.ResponseWriter, r *http.Request) {
 	_, _, login := checkLogin(w, r)
