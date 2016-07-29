@@ -20,19 +20,43 @@ th {
 <div id="table"/>
 
 <script type="text/javascript">
-	var holdingdata = [{"name": "abc", "price": "124."}];
+	var holdingdata = [];
 	//var myList = [{"name" : "abc", "age" : 50},
 	//			  {"age" : "25", "hobby" : "swimming"},
 	//			  {"name" : "xyz", "hobby" : "programming"}];
 
 	// Builds the HTML Table out of myList.
 	function buildHtmlTable(selector) {
-		var columns = addAllColumnHeaders(selector);
 
+		var columnSet = [];
+		var headerTr$ = $('<tr/>');
+
+		// base fields
+		['ISIN', 'price', 'volume', 'buy date', 'fee'].forEach(function(key){
+			columnSet.push(key);
+			headerTr$.append($('<th/>').html(key));
+		});
+		
+		console.log(columnSet);
+		// iterate over all data entries and add possible not contained header fields
+		for (var i = 0 ; i < holdingdata.length ; i++) {
+			var rowHash = holdingdata[i];
+			// iterate over all keys in the data entry
+			for (var key in rowHash) {
+				if ($.inArray(key, columnSet) == -1){
+					columnSet.push(key);
+					headerTr$.append($('<th/>').html(key));
+				}
+			}
+		}
+		console.log(columnSet);
+		$(selector).append(headerTr$);
+
+		// now lets fill the table
 		for (var i = 0 ; i < holdingdata.length ; i++) {
 			var row$ = $('<tr/>');
-			for (var colIndex = 0 ; colIndex < columns.length ; colIndex++) {
-				var cellValue = holdingdata[i][columns[colIndex]];
+			for (var colIndex = 0 ; colIndex < columnSet.length ; colIndex++) {
+				var cellValue = holdingdata[i][columnSet[colIndex]];
 
 				if (cellValue == null) { cellValue = ""; }
 
@@ -42,31 +66,12 @@ th {
 		}
 	}
 
-	// Adds a header row to the table and returns the set of columns.
-	// Need to do union of keys from all records as some records may not contain
-	// all records
-	function addAllColumnHeaders(selector)
-	{
-		var columnSet = [];
-		var headerTr$ = $('<tr/>');
-
-		for (var i = 0 ; i < data.length ; i++) {
-			var rowHash = data[i];
-			for (var key in rowHash) {
-				if ($.inArray(key, columnSet) == -1){
-					columnSet.push(key);
-					headerTr$.append($('<th/>').html(key));
-				}
-			}
-		}
-		$(selector).append(headerTr$);
-
-		return columnSet;
-	}
-
 	$.getJSON('/holding/get', function(data) {
-		console.log(data)
-		holdingdata = data;
+		if (data !== null){
+			console.log("returned: " + data);
+			holdingdata = data;
+		}
+
 		buildHtmlTable('#table')
 	});
 	
