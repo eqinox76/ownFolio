@@ -20,18 +20,19 @@ th {
 <div id="table"/>
 
 <script type="text/javascript">
-	var myList = [{"name" : "abc", "age" : 50},
-				  {"age" : "25", "hobby" : "swimming"},
-				  {"name" : "xyz", "hobby" : "programming"}];
+	var holdingdata = [{"name": "abc", "price": "124."}];
+	//var myList = [{"name" : "abc", "age" : 50},
+	//			  {"age" : "25", "hobby" : "swimming"},
+	//			  {"name" : "xyz", "hobby" : "programming"}];
 
 	// Builds the HTML Table out of myList.
 	function buildHtmlTable(selector) {
-		var columns = addAllColumnHeaders(myList, selector);
+		var columns = addAllColumnHeaders(selector);
 
-		for (var i = 0 ; i < myList.length ; i++) {
+		for (var i = 0 ; i < holdingdata.length ; i++) {
 			var row$ = $('<tr/>');
 			for (var colIndex = 0 ; colIndex < columns.length ; colIndex++) {
-				var cellValue = myList[i][columns[colIndex]];
+				var cellValue = holdingdata[i][columns[colIndex]];
 
 				if (cellValue == null) { cellValue = ""; }
 
@@ -44,13 +45,13 @@ th {
 	// Adds a header row to the table and returns the set of columns.
 	// Need to do union of keys from all records as some records may not contain
 	// all records
-	function addAllColumnHeaders(myList, selector)
+	function addAllColumnHeaders(selector)
 	{
 		var columnSet = [];
 		var headerTr$ = $('<tr/>');
 
-		for (var i = 0 ; i < myList.length ; i++) {
-			var rowHash = myList[i];
+		for (var i = 0 ; i < data.length ; i++) {
+			var rowHash = data[i];
 			for (var key in rowHash) {
 				if ($.inArray(key, columnSet) == -1){
 					columnSet.push(key);
@@ -63,7 +64,12 @@ th {
 		return columnSet;
 	}
 
-	buildHtmlTable('#table')
+	$.getJSON('/holding/get', function(data) {
+		console.log(data)
+		holdingdata = data;
+		buildHtmlTable('#table')
+	});
+	
 
 </script>
 
