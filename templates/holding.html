@@ -1,18 +1,6 @@
-{{ define "cssInclude"}}
-<style>
-table,td,th {
-	border:1px solid black;
-	border-collapse:collapse;
-	padding:2px 10px;
-}
-
-th {
-	background-color:lightgrey;
-}
-</style>
-{{ end }}
-
 {{ define "jsInclude"}}
+	<link rel="stylesheet" href="/static/jquery/jquery-ui-1.12.0/jquery-ui.min.css">
+	<script src="/static/jquery/jquery-ui-1.12.0/jquery-ui.min.js"></script>
 {{ end }}
 
 {{ define "content" }}
@@ -37,7 +25,6 @@ th {
 			headerTr$.append($('<th/>').html(key));
 		});
 		
-		console.log(columnSet);
 		// iterate over all data entries and add possible not contained header fields
 		for (var i = 0 ; i < holdingdata.length ; i++) {
 			var rowHash = holdingdata[i];
@@ -49,8 +36,12 @@ th {
 				}
 			}
 		}
-		console.log(columnSet);
-		$(selector).append(headerTr$);
+
+		var theader$ = $('<thead/>');
+		theader$.append(headerTr$);
+		$(selector).append(theader$);
+
+		var tbody = $('<tbody/>');
 
 		// now lets fill the table
 		for (var i = 0 ; i < holdingdata.length ; i++) {
@@ -62,8 +53,22 @@ th {
 
 				row$.append($('<td/>').html(cellValue));
 			}
-			$(selector).append(row$);
+			tbody.append(row$);
 		}
+
+		$(selector).append(tbody);
+
+		// now add the input fields
+		var row$ = $('<tr/>');
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'isin'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'price'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'volume'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'buy_date'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'fee'})));
+		row$.append($('<td/>').append($('<button/>').attr({ type: "button", id: 'add_button'}).text('Add')));
+		$(selector).append(row$);
+
+		$('#buy_date').datepicker();
 	}
 
 	$.getJSON('/holding/get', function(data) {
