@@ -8,10 +8,43 @@ import (
 	"strings"
 	"time"
 
+	"appengine"
 	"appengine/datastore"
 
 	"github.com/eqinox76/ownFolio/data"
 )
+
+type holdingAncestor struct {
+	Key string
+}
+
+// we need a ancestor for consistent queries
+var ancestor *datastore.Key = nil
+
+func maybeCheckAncestor(w http.ResponseWriter, c appengine.Context) {
+	if ancestor != nil {
+		return
+	}
+
+	q := datastore.NewQuery("holdingAncestor").Limit(1).KeysOnly()
+	count, err := q.Count(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	if count == 0 {
+
+		ancestor, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holdingAncestor", nil), &holdingAncestor{Key: "ancestor"})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		ancestor, err = q.Run(c).Next(nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
 
 func GetHolding(w http.ResponseWriter, r *http.Request) {
 	c, _, login := CheckLogin(w, r)
@@ -19,12 +52,20 @@ func GetHolding(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not logged in correctly", 401)
 	}
 
-	q := datastore.NewQuery("holding")
+	maybeCheckAncestor(w, c)
+
+	q := datastore.NewQuery("holding").Ancestor(ancestor)
+
 	var results []data.Holding
-	_, err := q.GetAll(c, &results)
+	keys, err := q.GetAll(c, &results)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// add keys to the holding data
+	for i, _ := range results {
+		results[i].Key = keys[i].Encode()
 	}
 
 	jsData, err := json.Marshal(results)
@@ -41,6 +82,8 @@ func AddHolding(w http.ResponseWriter, r *http.Request) {
 	if !login {
 		http.Error(w, "Not logged in correctly", 401)
 	}
+
+	maybeCheckAncestor(w, c)
 
 	isin := strings.Trim(r.URL.Query().Get("isin"), "\"")
 	priceStr := strings.Trim(r.URL.Query().Get("price"), "\"")
@@ -73,9 +116,30 @@ func AddHolding(w http.ResponseWriter, r *http.Request) {
 
 	// we add a new symbol
 	a := data.Holding{ISIN: isin, Price: price, Volume: volume, BuyDate: date}
-	_, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holding", nil), &a)
+	_, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holding", ancestor), &a)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+}
+
+func DelHolding(w http.ResponseWriter, r *http.Request) {
+	c, _, login := CheckLogin(w, r)
+	if !login {
+		http.Error(w, "Not logged in correctly", 401)
+	}
+
+	maybeCheckAncestor(w, c)
+
+	key := strings.Trim(r.URL.Query().Get("key"), "\"")
+
+	datastoreKey, err := datastore.DecodeKey(key)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = datastore.Delete(c, datastoreKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

@@ -10,4 +10,5 @@ type Holding struct {
 	Price   float64
 	Fee     float64
 	BuyDate time.Time
+	Key     string
 }

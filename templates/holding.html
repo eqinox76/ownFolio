@@ -5,7 +5,8 @@
 
 {{ define "content" }}
 <h1>Holdings</h1>
-<div id="table"/>
+<div id="table"></div>
+<div id="error_text"></div>
 
 <script type="text/javascript">
 	var holdingdata = [];
@@ -15,12 +16,13 @@
 
 	// Builds the HTML Table out of myList.
 	function buildHtmlTable(selector) {
+		$(selector).empty();
 
 		var columnSet = [];
 		var headerTr$ = $('<tr/>');
 
 		// base fields
-		['ISIN', 'price', 'volume', 'buy date', 'fee'].forEach(function(key){
+		['ISIN', 'Price', 'Volume', 'BuyDate', 'Fee'].forEach(function(key){
 			columnSet.push(key);
 			headerTr$.append($('<th/>').html(key));
 		});
@@ -30,6 +32,11 @@
 			var rowHash = holdingdata[i];
 			// iterate over all keys in the data entry
 			for (var key in rowHash) {
+				if (key === 'key'){
+					console.log(key);
+					continue;
+				}
+
 				if ($.inArray(key, columnSet) == -1){
 					columnSet.push(key);
 					headerTr$.append($('<th/>').html(key));
@@ -47,12 +54,19 @@
 		for (var i = 0 ; i < holdingdata.length ; i++) {
 			var row$ = $('<tr/>');
 			for (var colIndex = 0 ; colIndex < columnSet.length ; colIndex++) {
-				var cellValue = holdingdata[i][columnSet[colIndex]];
+				var cellKey = columnSet[colIndex];
+				var cellValue = holdingdata[i][cellKey];
+
+				if (cellKey === 'Key'){
+					row$.data('Key', cellValue);
+					continue;
+				}
 
 				if (cellValue == null) { cellValue = ""; }
 
 				row$.append($('<td/>').html(cellValue));
 			}
+			row$.append($('<td/>').append($('<button/>').attr({ type: "button", class: 'del_button'}).text('Del')));
 			tbody.append(row$);
 		}
 
@@ -60,24 +74,80 @@
 
 		// now add the input fields
 		var row$ = $('<tr/>');
-		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'isin'})));
-		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'price'})));
-		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'volume'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'isin', placeholder: 'ISIN'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'price', placeholder: 'price'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'volume', placeholder: 'volume'})));
 		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'buy_date'})));
-		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'fee'})));
+		row$.append($('<td/>').append($('<input/>').attr({ type: 'text', id: 'fee', placeholder: 'fee'})));
 		row$.append($('<td/>').append($('<button/>').attr({ type: "button", id: 'add_button'}).text('Add')));
 		$(selector).append(row$);
 
-		$('#buy_date').datepicker();
+		$('#buy_date').datepicker({
+			dateFormat: "yy-mm-dd",
+		});
+		$('#buy_date').datepicker('setDate', new Date());
 	}
 
-	$.getJSON('/holding/get', function(data) {
-		if (data !== null){
-			console.log("returned: " + data);
-			holdingdata = data;
+	function onAddHolding(){
+		console.log('Add event');
+		$('#error_text').text('');
+
+		var isin = $('#isin').val();
+		var price = $('#price').val();
+		var volume = $('#volume').val();
+		var buy_date = $('#buy_date').val();
+		var fee = $('#fee').val();
+
+		if (! isin){
+			$('#error_text').text('isin empty');
+			return;
+		}
+		if (! price){
+			$('#error_text').text('price empty');
+			return;
+		}
+		if (! volume){
+			$('#error_text').text('volume empty');
+			return;
+		}
+		if (! buy_date){
+			$('#error_text').text('buy_date empty');
+			return;
 		}
 
-		buildHtmlTable('#table')
+		$.get("/holding/add", {'isin': isin, 'price': price, 'volume': volume, 'date': buy_date}).done(function( data ) {
+  			$('#error_text').text(data);
+  			reload();
+		});
+	}
+
+	function onDelHolding(event){
+		console.log('Del event');
+		$.get("/holding/del", {'key': $(event.target).parent().parent().data('Key')}).done(function( data ) {
+			console.log('deleted ' + $(event.target).parent().parent().data('Key'));
+  			$('#error_text').text(data);
+  			reload();
+		});
+	}
+
+	function reload(){
+		console.log('reload triggered')
+		$.getJSON('/holding/get', function(data) {
+			if (data !== null){
+				holdingdata = data;
+			}
+
+			console.log(data)
+
+			buildHtmlTable('#table');
+
+			$('#add_button').click(onAddHolding);
+			$('.del_button').click(onDelHolding);
+		});
+	}
+
+	$( document ).ready(function(){
+		reload();
 	});
 	
 

@@ -17,6 +17,7 @@ func init() {
 	http.HandleFunc("/holding", showHoldings)
 	http.HandleFunc("/holding/add", api.AddHolding)
 	http.HandleFunc("/holding/get", api.GetHolding)
+	http.HandleFunc("/holding/del", api.DelHolding)
 }
 
 var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
