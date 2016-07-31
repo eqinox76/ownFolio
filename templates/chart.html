@@ -11,13 +11,15 @@
 <div id="chart"></div>
 
 
-
-
 <script type="text/javascript">
 	var chart = c3.generate({
 		bindto: '#chart',
 		data:{
-			json:[],
+			x: 'b',
+			json:{
+				'a':[42,43,44],
+				'b':['2015-01-06T00:00:01Z', '2016-04-08T00:00:01Z', '2017-01-05T00:00:01Z']
+		},
 			xFormat: '%Y-%m-%dT%H:%M:%SZ',
 		},
 		zoom: {
@@ -26,6 +28,9 @@
 		axis: {
 			x:{
 				type: 'timeseries',
+				tick: {
+                	format: '%Y-%m-%d'
+            	}
 			}
 		}
 	});
@@ -38,13 +43,23 @@
 			keys: {
 				x: 'Time',
 				value: ['Close'],
+			},
+			names: {
+			    'Close': 'Data Name 1'
 			}
 		})
+
+		setTimeout(function() {
+			console.log(chart.data.shown());
+			chart.unload("Close")
+
+			console.log(chart.data.names());
+		}, 2000);
 	};
 
 	loadInstrument('INDEX_GDAXI');
 
-	var table = d3.select('body').append('table');
+//	var table = d3.select('body').append('table');
 
 
 </script>

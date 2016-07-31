@@ -18,9 +18,9 @@ type holdingAncestor struct {
 	Key string
 }
 
-// we need a ancestor for consistent queries
 var ancestor *datastore.Key = nil
 
+// we need a ancestor for consistent queries therefore we must make sure that it is in the datastore
 func maybeCheckAncestor(w http.ResponseWriter, c appengine.Context) {
 	if ancestor != nil {
 		return
@@ -46,6 +46,7 @@ func maybeCheckAncestor(w http.ResponseWriter, c appengine.Context) {
 	}
 }
 
+// return all holdings of this account
 func GetHolding(w http.ResponseWriter, r *http.Request) {
 	c, _, login := CheckLogin(w, r)
 	if !login {
@@ -63,7 +64,7 @@ func GetHolding(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// add keys to the holding data
+	// add keys to the holding data to be able to delete them later
 	for i, _ := range results {
 		results[i].Key = keys[i].Encode()
 	}
@@ -123,6 +124,7 @@ func AddHolding(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// delete a holding by key
 func DelHolding(w http.ResponseWriter, r *http.Request) {
 	c, _, login := CheckLogin(w, r)
 	if !login {

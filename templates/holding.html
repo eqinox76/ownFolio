@@ -10,11 +10,8 @@
 
 <script type="text/javascript">
 	var holdingdata = [];
-	//var myList = [{"name" : "abc", "age" : 50},
-	//			  {"age" : "25", "hobby" : "swimming"},
-	//			  {"name" : "xyz", "hobby" : "programming"}];
 
-	// Builds the HTML Table out of myList.
+	// Builds the HTML Table out of holdingdata.
 	function buildHtmlTable(selector) {
 		$(selector).empty();
 
@@ -88,6 +85,7 @@
 		$('#buy_date').datepicker('setDate', new Date());
 	}
 
+	// add button pressed. get the input data and add a new holding via api
 	function onAddHolding(){
 		console.log('Add event');
 		$('#error_text').text('');
@@ -121,6 +119,7 @@
 		});
 	}
 
+	// delete button pressed. find the row to delete and delete via api
 	function onDelHolding(event){
 		console.log('Del event');
 		$.get("/holding/del", {'key': $(event.target).parent().parent().data('Key')}).done(function( data ) {
@@ -130,11 +129,15 @@
 		});
 	}
 
+	// get all holding data for this account and display it
 	function reload(){
 		console.log('reload triggered')
 		$.getJSON('/holding/get', function(data) {
 			if (data !== null){
 				holdingdata = data;
+			}
+			else{
+				holdingdata = [];
 			}
 
 			console.log(data)
