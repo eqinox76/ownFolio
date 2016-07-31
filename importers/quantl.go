@@ -13,6 +13,8 @@ import (
 	"github.com/eqinox76/ownFolio/data"
 )
 
+var ErrEmptyResponse = fmt.Errorf("Empty data returned.")
+
 type Root struct {
 	Dataset struct {
 		Name         string
@@ -38,6 +40,11 @@ func ParseQuantlJson(reader io.Reader) (data.TimeSeries, error) {
 	lowPos := -1
 	closePos := -1
 	volPos := -1
+
+	if len(r.Dataset.Column_names) == 0 {
+		// the response is empty. most likely there is no data.
+		return instr, nil
+	}
 
 	for index, value := range r.Dataset.Column_names {
 		switch value {

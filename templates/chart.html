@@ -18,6 +18,7 @@
 			x: 'b',
 			json:{
 				'a':[42,43,44],
+				'c':[142,143,144],
 				'b':['2015-01-06T00:00:01Z', '2016-04-08T00:00:01Z', '2017-01-05T00:00:01Z']
 		},
 			xFormat: '%Y-%m-%dT%H:%M:%SZ',
@@ -35,8 +36,37 @@
 		}
 	});
 
-	function loadInstrument(id){
-		chart.load({
+	function loadInstrument(ids){
+		var AJAX = [];
+		for (i=0; i < ids.length; i++) {
+    		AJAX.push($.getJSON('/timeseries?instrument=' + ids[i] +'&limit=365'));
+		}
+
+		$.when.apply($, AJAX).done(function(){
+		    // This callback will be called with multiple arguments,
+		    // one for each AJAX call
+		    // Each argument is an array with the following structure: [data, statusText, jqXHR]
+		    var data = [];
+		    if (typeof arguments[1] === 'string' || arguments[1] instanceof String){
+		    	console.log('only one parameter')
+		    	if (arguments[1] === 'success'){
+		    		data.push(arguments[0]);
+				}
+		    }
+		    else {
+			    for(var i = 0, len = arguments.length; i < len; i++){
+			    	if (arguments[i][1] === 'success'){
+			        	data.push(arguments[i][0]);
+					}
+			    }
+			}
+			console.log(data.length);
+
+		});
+
+
+
+		/*chart.load({
 			url: '/timeseries?instrument=' + id +'&limit=365',
 			mimeType: 'json',
 
@@ -48,16 +78,13 @@
 			    'Close': 'Data Name 1'
 			}
 		})
-
-		setTimeout(function() {
-			console.log(chart.data.shown());
-			chart.unload("Close")
-
-			console.log(chart.data.names());
-		}, 2000);
+		*/
 	};
 
-	loadInstrument('INDEX_GDAXI');
+	$( document ).ready(function(){
+
+		loadInstrument(['INDEX_GDAXI','none']);
+	});
 
 //	var table = d3.select('body').append('table');
 
