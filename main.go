@@ -1,14 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
 
 	"github.com/eqinox76/ownFolio/api"
-	"github.com/eqinox76/ownFolio/data"
 )
 
 func init() {
@@ -57,18 +55,19 @@ func getTimeSeries(w http.ResponseWriter, r *http.Request) {
 	instrument := r.URL.Query().Get("instrument")
 
 	//TODO find a better way to do this optional limit parameter
-	var timeseries data.DataPoints
+	var timeseries []byte
+	var generateError error
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil {
-		timeseries = api.GetInstrument(c, instrument)
+		timeseries, generateError = api.GetInstrument(c, instrument)
 	} else {
-		timeseries = api.GetInstrumentLimited(c, instrument, limit)
+		timeseries, generateError = api.GetInstrumentLimited(c, instrument, limit)
 	}
 
-	jsData, err := json.Marshal(timeseries)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if generateError != nil {
+		http.Error(w, generateError.Error(), 500)
 	}
-	fmt.Fprintf(w, "%s", jsData)
+
+	fmt.Fprintf(w, "%s", timeseries)
 }

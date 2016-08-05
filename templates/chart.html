@@ -36,6 +36,51 @@
 		}
 	});
 
+	function generateChartData(data, ids, datefield){
+		positions = [];
+		for(elem of data){
+			positions.push(0);
+		}
+
+		var c =0;
+		// search smallest date
+		while (c < 1000){
+			min = 0
+			//search first data which still has something to convert
+			for(var i=1; i < positions.length; i++){
+				if (data[i].length <= positions[i]){
+					min++
+				}
+				else{
+					break;
+				}
+			}
+			if (min >= positions.length){
+				//there is no more data
+				break;
+			}
+
+			for(var i=1; i < positions.length; i++){
+				console.log(i)
+				console.log(data[i])
+				// prevent overflow
+				if (data[i].length <= positions[i])
+				{
+					continue;
+				}
+				if (data[min][positions[min]] > data[i][positions[i]]){
+					min = i;
+				}
+			}
+			for(var i=1; i < positions.length; i++){
+				console.log(i + ' ' + positions[i] + ' ' + data[i][positions[i]])
+			}
+			console.log('min:' + min);
+			positions[min]++;
+			console.log('c:' + c++);
+		}
+	}
+
 	function loadInstrument(ids){
 		var AJAX = [];
 		for (i=0; i < ids.length; i++) {
@@ -55,13 +100,12 @@
 		    }
 		    else {
 			    for(var i = 0, len = arguments.length; i < len; i++){
-			    	if (arguments[i][1] === 'success'){
+			    	if (arguments[i][1] === 'success' && arguments[i][0] !== null){
 			        	data.push(arguments[i][0]);
 					}
 			    }
 			}
-			console.log(data.length);
-
+			generateChartData(data, ids, 'Date')
 		});
 
 
@@ -83,7 +127,7 @@
 
 	$( document ).ready(function(){
 
-		loadInstrument(['INDEX_GDAXI','none']);
+		loadInstrument(['INDEX_GDAXI','INDEX_GDAXI']);
 	});
 
 //	var table = d3.select('body').append('table');
