@@ -24,17 +24,25 @@ var getData = getDataF
 
 func GetInstrumentLimited(ctx appengine.Context, id string, limit int) ([]byte, error) {
 
-	data, err := GetInstrument(ctx, id)
+	data, err := getInstrument(ctx, id)
 	if err != nil {
-		return data, err
+		return nil, err
 	}
 	//TODO why no min for int ?
 	pos := math.Max(0, float64(len(data)-limit))
 
-	return data[int(pos):], nil
+	return formatData(data[int(pos):], id), nil
 }
 
 func GetInstrument(ctx appengine.Context, id string) ([]byte, error) {
+	data, err := getInstrument(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return formatData(data, id), nil
+}
+
+func getInstrument(ctx appengine.Context, id string) (data.DataPoints, error) {
 	// get item from memcache
 	if item, err := memcache.Get(ctx, id); err == memcache.ErrCacheMiss {
 		// item not in cache
@@ -58,14 +66,14 @@ func GetInstrument(ctx appengine.Context, id string) ([]byte, error) {
 		}
 
 		ctx.Infof("Got '%s' from source", id)
-		return formatData(instr, id), nil
+		return instr, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("error getting id:%s err:%s", id, err)
 		instr, err := getData(ctx, id)
 		if err != nil {
 			return nil, fmt.Errorf("could not get data for %s because %s", id, err)
 		}
-		return formatData(instr, id), nil
+		return instr, nil
 	} else {
 		buffer := bytes.NewBuffer(item.Value)
 		var instr data.DataPoints
@@ -80,7 +88,7 @@ func GetInstrument(ctx appengine.Context, id string) ([]byte, error) {
 		}
 
 		ctx.Infof("Got '%s' from cache", id)
-		return formatData(instr, id), nil
+		return instr, nil
 	}
 }
 
@@ -97,31 +105,31 @@ func formatData(instruments data.DataPoints, id string) []byte {
 	// TODO the desired format is a 'bit' strange therefore we need to generate the json by hand
 	var data bytes.Buffer
 	var time bytes.Buffer
-	data.WriteString("['")
+	data.WriteString("[\"")
 	data.WriteString(id)
-	data.WriteString("'")
+	data.WriteString("\"")
 
-	time.WriteString("['")
+	time.WriteString("[\"")
 	time.WriteString("date")
-	time.WriteString("'")
+	time.WriteString("\"")
 	for _, instr := range instruments {
 		data.WriteString(", ")
 		// TODO write at least directly into the bytes.Buffer strconv.AppendFloat seems to have the wrong interface
 		// TODO lets convert everything to float64 and thereafter tell the function which float we used
 		data.WriteString(strconv.FormatFloat(float64(instr.Close), 'f', -1, 32))
 
-		time.WriteString(", '")
+		time.WriteString(", \"")
 		time.WriteString(instr.Time.Format("2006-01-02T15:04:05Z"))
-		time.WriteString("'")
+		time.WriteString("\"")
 	}
 	data.WriteString("],")
 	time.WriteString("]")
 
 	var result bytes.Buffer
-	result.WriteString("{columns:[")
+	result.WriteString("[")
 	result.WriteString(data.String())
 	result.WriteString(time.String())
-	result.WriteString("]}")
+	result.WriteString("]")
 
 	return result.Bytes()
 }
