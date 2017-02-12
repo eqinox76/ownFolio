@@ -74,3 +74,18 @@ func WithDatastore(h HandlerWithDataStore) http.HandlerFunc {
 		h(w, r, c)
 	}
 }
+
+func DelFromDataStore(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+
+	key := strings.Trim(r.URL.Query().Get("key"), "\"")
+
+	datastoreKey, err := datastore.DecodeKey(key)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = datastore.Delete(c, datastoreKey)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}

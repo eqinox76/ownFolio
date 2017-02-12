@@ -78,18 +78,3 @@ func Add(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	}
 
 }
-
-// delete a holding by key
-func Del(w http.ResponseWriter, r *http.Request, c appengine.Context) {
-	key := strings.Trim(r.URL.Query().Get("key"), "\"")
-
-	datastoreKey, err := datastore.DecodeKey(key)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	err = datastore.Delete(c, datastoreKey)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}

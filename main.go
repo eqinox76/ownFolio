@@ -28,12 +28,12 @@ func init() {
 	// manage what the logged in user owns
 	http.HandleFunc("/holding/add", api.WithDatastore(holdings.Add))
 	http.HandleFunc("/holding/get", api.WithDatastore(holdings.Get))
-	http.HandleFunc("/holding/del", api.WithDatastore(holdings.Del))
+	http.HandleFunc("/holding/del", api.DelFromDataStore)
 
 	// manage retrieval options
 	http.HandleFunc("/isinresolver/add", api.WithDatastore(isinresolver.Add))
 	http.HandleFunc("/isinresolver/get", api.WithDatastore(isinresolver.Get))
-	http.HandleFunc("/isinresolver/del", api.WithDatastore(isinresolver.Del))
+	http.HandleFunc("/isinresolver/del", api.DelFromDataStore)
 }
 
 var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
