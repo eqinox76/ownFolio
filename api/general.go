@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"appengine"
 	"appengine/datastore"
@@ -75,17 +76,30 @@ func WithDatastore(h HandlerWithDataStore) http.HandlerFunc {
 	}
 }
 
-func DelFromDataStore(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+func LoggedIn(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, _, login := CheckLogin(w, r)
+		if !login {
+			http.Error(w, "Not logged in correctly", 401)
+		}
 
-	key := strings.Trim(r.URL.Query().Get("key"), "\"")
-
-	datastoreKey, err := datastore.DecodeKey(key)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h(w, r)
 	}
+}
 
-	err = datastore.Delete(c, datastoreKey)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+func DelFromDataStore(w http.ResponseWriter, r *http.Request) {
+	WithDatastore(func(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+
+		key := strings.Trim(r.URL.Query().Get("key"), "\"")
+
+		datastoreKey, err := datastore.DecodeKey(key)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		err = datastore.Delete(c, datastoreKey)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})(w, r)
 }

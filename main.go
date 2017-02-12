@@ -15,8 +15,9 @@ func init() {
 	/*
 	* js start pages
 	 */
-	http.HandleFunc("/stocks", getStock)
-	http.HandleFunc("/holding", showHoldings)
+	http.HandleFunc("/stocks", api.LoggedIn(getStock))
+	http.HandleFunc("/holding", api.LoggedIn(showHoldings))
+	http.HandleFunc("/isinresolver", api.LoggedIn(showIsinResolver))
 
 	/*
 	* REST api
@@ -36,29 +37,28 @@ func init() {
 	http.HandleFunc("/isinresolver/del", api.DelFromDataStore)
 }
 
-var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
-
-var holdingTempl = template.Must(template.ParseFiles("templates/base.html", "templates/holding.html"))
-
 func showHoldings(w http.ResponseWriter, r *http.Request) {
-	_, _, login := api.CheckLogin(w, r)
-	if !login {
-		http.Error(w, "Not logged in correctly", 401)
-	}
+	var tmpl = template.Must(template.ParseFiles("templates/base.html", "templates/holding.html"))
 
-	err := holdingTempl.Execute(w, nil)
+	err := tmpl.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func getStock(w http.ResponseWriter, r *http.Request) {
-	_, _, login := api.CheckLogin(w, r)
-	if !login {
-		http.Error(w, "Not logged in correctly", 401)
-	}
+	var tmpl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))
 
-	err := chartTempl.Execute(w, nil)
+	err := tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func showIsinResolver(w http.ResponseWriter, r *http.Request) {
+	var tmpl = template.Must(template.ParseFiles("templates/base.html", "templates/isinresolver.html"))
+
+	err := tmpl.Execute(w, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

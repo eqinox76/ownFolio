@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -52,9 +50,8 @@ func Add(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 		return
 	}
 
-	// we add a new symbol
 	a := data.IsinTranslation{ISIN: isin, Source: source, Identifier: identifier, Database: database}
-	_, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holding", api.Ancestor), &a)
+	_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "holding", api.Ancestor), &a)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
