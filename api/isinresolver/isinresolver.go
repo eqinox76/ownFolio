@@ -1,4 +1,4 @@
-package api
+package isinresolver
 
 import (
 	"encoding/json"
@@ -11,51 +11,14 @@ import (
 	"appengine"
 	"appengine/datastore"
 
+	"github.com/eqinox76/ownFolio/api"
 	"github.com/eqinox76/ownFolio/data"
 )
 
-type holdingAncestor struct {
-	Key string
-}
-
-var ancestor *datastore.Key = nil
-
-// we need a ancestor for consistent queries therefore we must make sure that it is in the datastore
-func maybeCheckAncestor(w http.ResponseWriter, c appengine.Context) {
-	if ancestor != nil {
-		return
-	}
-
-	q := datastore.NewQuery("holdingAncestor").Limit(1).KeysOnly()
-	count, err := q.Count(c)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	if count == 0 {
-
-		ancestor, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holdingAncestor", nil), &holdingAncestor{Key: "ancestor"})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
-		ancestor, err = q.Run(c).Next(nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}
-}
-
 // return all holdings of this account
-func GetHolding(w http.ResponseWriter, r *http.Request) {
-	c, _, login := CheckLogin(w, r)
-	if !login {
-		http.Error(w, "Not logged in correctly", 401)
-	}
+func Get(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 
-	maybeCheckAncestor(w, c)
-
-	q := datastore.NewQuery("holding").Ancestor(ancestor)
+	q := datastore.NewQuery("holding").Ancestor(api.Ancestor)
 
 	var results []data.Holding
 	keys, err := q.GetAll(c, &results)
@@ -78,13 +41,7 @@ func GetHolding(w http.ResponseWriter, r *http.Request) {
 }
 
 // http://localhost:8080/holding/add?isin=%22huhuh%22&price=42.4&volume=51223&date=%222015-01-04%22
-func AddHolding(w http.ResponseWriter, r *http.Request) {
-	c, _, login := CheckLogin(w, r)
-	if !login {
-		http.Error(w, "Not logged in correctly", 401)
-	}
-
-	maybeCheckAncestor(w, c)
+func Add(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 
 	isin := strings.Trim(r.URL.Query().Get("isin"), "\"")
 	priceStr := strings.Trim(r.URL.Query().Get("price"), "\"")
@@ -117,7 +74,7 @@ func AddHolding(w http.ResponseWriter, r *http.Request) {
 
 	// we add a new symbol
 	a := data.Holding{ISIN: isin, Price: price, Volume: volume, BuyDate: date}
-	_, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holding", ancestor), &a)
+	_, err = datastore.Put(c, datastore.NewIncompleteKey(c, "holding", api.Ancestor), &a)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -125,13 +82,7 @@ func AddHolding(w http.ResponseWriter, r *http.Request) {
 }
 
 // delete a holding by key
-func DelHolding(w http.ResponseWriter, r *http.Request) {
-	c, _, login := CheckLogin(w, r)
-	if !login {
-		http.Error(w, "Not logged in correctly", 401)
-	}
-
-	maybeCheckAncestor(w, c)
+func Del(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 
 	key := strings.Trim(r.URL.Query().Get("key"), "\"")
 

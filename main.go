@@ -7,15 +7,33 @@ import (
 	"strconv"
 
 	"github.com/eqinox76/ownFolio/api"
+	"github.com/eqinox76/ownFolio/api/holdings"
+	"github.com/eqinox76/ownFolio/api/isinresolver"
 )
 
 func init() {
+	/*
+	* js start pages
+	 */
 	http.HandleFunc("/stocks", getStock)
-	http.HandleFunc("/timeseries", getTimeSeries)
 	http.HandleFunc("/holding", showHoldings)
-	http.HandleFunc("/holding/add", api.AddHolding)
-	http.HandleFunc("/holding/get", api.GetHolding)
-	http.HandleFunc("/holding/del", api.DelHolding)
+
+	/*
+	* REST api
+	 */
+
+	// access market data
+	http.HandleFunc("/timeseries", getTimeSeries)
+
+	// manage what the logged in user owns
+	http.HandleFunc("/holding/add", api.WithDatastore(holdings.Add))
+	http.HandleFunc("/holding/get", api.WithDatastore(holdings.Get))
+	http.HandleFunc("/holding/del", api.WithDatastore(holdings.Del))
+
+	// manage retrieval options
+	http.HandleFunc("/isinresolver/add", api.WithDatastore(isinresolver.Add))
+	http.HandleFunc("/isinresolver/get", api.WithDatastore(isinresolver.Get))
+	http.HandleFunc("/isinresolver/del", api.WithDatastore(isinresolver.Del))
 }
 
 var chartTempl = template.Must(template.ParseFiles("templates/base.html", "templates/chart.html"))

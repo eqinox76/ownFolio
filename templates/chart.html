@@ -31,55 +31,9 @@
 			}
 		}
 	});
-/*
-	function generateChartData(data, ids, datefield){
-		positions = [];
-		for(elem of data){
-			positions.push(0);
-		}
 
-		var c =0;
-		// search smallest date
-		while (c < 1000){
-			min = 0
-			//search first data which still has something to convert
-			for(var i=1; i < positions.length; i++){
-				if (data[i].length <= positions[i]){
-					min++
-				}
-				else{
-					break;
-				}
-			}
-			if (min >= positions.length){
-				//there is no more data
-				break;
-			}
-
-			for(var i=1; i < positions.length; i++){
-				console.log(i)
-				console.log(data[i])
-				// prevent overflow
-				if (data[i].length <= positions[i])
-				{
-					continue;
-				}
-				if (data[min][positions[min]] > data[i][positions[i]]){
-					min = i;
-				}
-			}
-			for(var i=1; i < positions.length; i++){
-				console.log(i + ' ' + positions[i] + ' ' + data[i][positions[i]])
-			}
-			console.log('min:' + min);
-			positions[min]++;
-			console.log('c:' + c++);
-		}
-	}
-*/
 	function generateChartData(data, ids, datefield){
 		for(elem of data){
-			console.log(elem)
 			chart.load({columns: elem});
 		}
 	}
@@ -115,11 +69,8 @@
 
 	$( document ).ready(function(){
 
-		loadInstrument(['INDEX_GDAXI','INDEX_GDAXI2']);
+		loadInstrument(['INDEX_GDAXI','DDAIF']);
 	});
-
-//	var table = d3.select('body').append('table');
-
 
 </script>
 {{ end }}
