@@ -51,7 +51,7 @@ func Add(w http.ResponseWriter, r *http.Request, c appengine.Context) {
 	}
 
 	a := data.IsinTranslation{ISIN: isin, Source: source, Identifier: identifier, Database: database}
-	_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "holding", api.Ancestor), &a)
+	_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "isintranslation", api.Ancestor), &a)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
