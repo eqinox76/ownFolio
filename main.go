@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/eqinox76/ownFolio/api"
+	"github.com/eqinox76/ownFolio/api/historicData"
 	"github.com/eqinox76/ownFolio/api/holdings"
 	"github.com/eqinox76/ownFolio/api/isinresolver"
 )
@@ -78,9 +79,9 @@ func getTimeSeries(w http.ResponseWriter, r *http.Request) {
 
 	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
 	if err != nil {
-		timeseries, generateError = api.GetInstrument(c, instrument)
+		timeseries, generateError = historicData.GetInstrument(c, instrument)
 	} else {
-		timeseries, generateError = api.GetInstrumentLimited(c, instrument, limit)
+		timeseries, generateError = historicData.GetInstrumentLimited(c, instrument, limit)
 	}
 
 	if generateError != nil {

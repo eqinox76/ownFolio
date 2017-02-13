@@ -23,7 +23,7 @@ type Root struct {
 	}
 }
 
-func ParseQuantlJson(reader io.Reader) (data.TimeSeries, error) {
+func parseQuantlJson(reader io.Reader) (data.TimeSeries, error) {
 	var instr data.TimeSeries
 
 	var r Root
@@ -129,5 +129,5 @@ func GetHistory(ctx appengine.Context, url string) (data.TimeSeries, error) {
 	}
 	defer r.Body.Close()
 
-	return ParseQuantlJson(r.Body)
+	return parseQuantlJson(r.Body)
 }

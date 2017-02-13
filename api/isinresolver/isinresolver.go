@@ -13,20 +13,27 @@ import (
 	"github.com/eqinox76/ownFolio/data"
 )
 
-func Get(w http.ResponseWriter, r *http.Request, c appengine.Context) {
-
+func GetMapping(c appengine.Context) ([]data.IsinTranslation, error) {
 	q := datastore.NewQuery("isintranslation").Ancestor(api.Ancestor)
 
 	var results []data.IsinTranslation
 	keys, err := q.GetAll(c, &results)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return results, err
 	}
 
 	// add keys to the holding data to be able to delete them later
 	for i, _ := range results {
 		results[i].Key = keys[i].Encode()
+	}
+
+	return results, nil
+}
+
+func Get(w http.ResponseWriter, r *http.Request, c appengine.Context) {
+	results, err := GetMapping(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	jsData, err := json.Marshal(results)
