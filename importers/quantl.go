@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"time"
 
@@ -56,13 +57,15 @@ func parseQuantlJson(reader io.Reader) (data.TimeSeries, error) {
 			lowPos = index
 		case "Adjusted Close":
 			closePos = index
+		case "Close":
+			closePos = index
 		case "Volume":
 			volPos = index
 		}
 	}
 
 	if datePos == -1 || highPos == -1 || lowPos == -1 || closePos == -1 || volPos == -1 {
-		return instr, fmt.Errorf("Could not identify position for a datapoint %s.", r.Dataset.Column_names)
+		return instr, fmt.Errorf("Could not identify position for a datapoint %s. [%i %i %i %i %i]", r.Dataset.Column_names, datePos, highPos, lowPos, closePos, volPos)
 	}
 
 	for _, entryAy := range r.Dataset.Data {
@@ -73,35 +76,35 @@ func parseQuantlJson(reader io.Reader) (data.TimeSeries, error) {
 		pos := highPos
 		val, ok := entryAy[pos].(float64)
 		if !ok {
-			return instr, fmt.Errorf("highPos '%d' not parsable %s", pos, entryAy[pos])
+			val = math.NaN()
 		}
 		dp.High = float32(val)
 
 		pos = lowPos
 		val, ok = entryAy[pos].(float64)
 		if !ok {
-			return instr, fmt.Errorf("lowPos '%d' not parsable %s", pos, entryAy[pos])
+			val = math.NaN()
 		}
 		dp.Low = float32(val)
 
 		pos = volPos
 		val, ok = entryAy[pos].(float64)
 		if !ok {
-			return instr, fmt.Errorf("volPos '%d' not parsable %s", pos, entryAy[pos])
+			val = math.NaN()
 		}
 		dp.Volume = uint64(val)
 
 		pos = closePos
 		val, ok = entryAy[pos].(float64)
 		if !ok {
-			return instr, fmt.Errorf("closePos '%d' not parsable %s", pos, entryAy[pos])
+			return instr, fmt.Errorf("closePos '%d' not parsable %s", pos, entryAy)
 		}
 		dp.Close = float32(val)
 
 		pos = datePos
 		date, ok := entryAy[pos].(string)
 		if !ok {
-			return instr, fmt.Errorf("datePos '%d' not parsable %s", pos, entryAy[pos])
+			return instr, fmt.Errorf("datePos '%d' not parsable %s", pos, entryAy)
 		}
 		dp.Time, err = time.Parse("2006-01-02", date)
 		if err != nil {
